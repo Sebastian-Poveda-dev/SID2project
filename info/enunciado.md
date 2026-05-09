@@ -1,65 +1,63 @@
-UniPlan: Plataforma para la Organización y Gestión de Eventos en la Universidad
+UniPlan: A Platform for Organizing and Managing University Events
 
-La Dirección de Bienestar Universitario de la Universidad Icesi ha identificado dificultades en la gestión y difusión de actividades extracurriculares dirigidas a los estudiantes. Actualmente, eventos como talleres, charlas, torneos deportivos, actividades culturales, clubes estudiantiles y jornadas de voluntariado se publican en distintos medios (redes sociales, correos electrónicos y carteleras físicas), lo que genera dispersión de la información. Como consecuencia, los estudiantes no siempre se enteran oportunamente de los eventos ni cuentan con información clara sobre su participación.
+The Office of Student Wellness at Icesi University has identified challenges in managing and promoting extracurricular activities for students. Currently, events such as workshops, talks, sports tournaments, cultural activities, student clubs, and volunteer days are published across various channels (social media, emails, and physical bulletin boards), leading to scattered information. As a result, students do not always learn about events in a timely manner nor do they have clear information regarding participation.
 
-Adicionalmente, los organizadores (profesores, líderes estudiantiles o personal de Bienestar Universitario) enfrentan dificultades para gestionar inscripciones y controlar la asistencia. Las reservas se realizan mediante herramientas externas (formularios o listas compartidas) que no permiten validar cupos disponibles ni gestionar de forma estructurada a los participantes.
+Additionally, organizers (professorship, student leaders, or University Wellness staff) face difficulties managing registrations and tracking attendance. Reservations are made using external tools (forms or shared lists) that do not allow for validating available spots or managing participants in a structured manner.
 
-Con el objetivo de mejorar esta situación, la universidad desarrollará una aplicación web denominada UniPlan, que centralizará la publicación, consulta e inscripción a eventos universitarios.
+To address this issue, the university will develop a web application called UniPlan, which will centralize the publication, viewing, and registration for university events.
 
-UniPlan deberá gestionar de forma independiente el registro y autenticación de sus usuarios, tomando la base de datos institucional únicamente como fuente de consulta para validar información académica y administrativa. El sistema no deberá modificar la estructura ni los datos de dicha base de datos.
+UniPlan must independently manage user registration and authentication, using the institutional database solely as a reference source to validate academic and administrative information. The system must not modify the structure or data of that database.
 
-Para acceder a la plataforma, los estudiantes deberán registrarse proporcionando su código estudiantil, correo institucional y contraseña. El sistema validará que el estudiante exista en la base de datos institucional y que no esté previamente registrado.
+To access the platform, students must register by providing their student ID, institutional email address, and password. The system will verify that the student exists in the institutional database and has not previously registered.
 
-El sistema contará con un módulo de administración en el que se registrarán los organizadores, previa validación con la base de datos institucional. El administrador del sistema será el jefe del área de Bienestar Universitario. Los organizadores se clasificarán en diferentes tipos de usuario, cada uno con atributos específicos (Si la información requerida ya se encuentra disponible en la base de datos institucional, deberá ser consultada desde esta y no duplicada en las estructuras propias del sistema.):
+The system will include an administration module where organizers will be registered, following validation against the institutional database. The system administrator will be the head of the University Wellness Department. Organizers will be classified into different user types, each with specific attributes (If the required information is already available in the institutional database, it must be retrieved from there and not duplicated in the system’s own structures.):
 
-Profesores: deberán registrar su facultad, departamento académico y área de especialización.
+Faculty (professorship): must enter their school, academic department, and area of specialization.
 
-Líderes estudiantiles: deberán registrar su programa académico, semestre y grupo o asociación que representan.
+Student leaders: must enter their academic program, semester, and the group or association they represent.
 
-Personal de Bienestar Universitario: deberán registrar el área administrativa a la que pertenecen y su cargo.
+Student Wellness staff: must enter the administrative unit to which they belong and their job title.
 
-Una vez autenticado, el estudiante podrá consultar el catálogo de eventos disponibles. Para cada evento se mostrará información como título, tipo de actividad, fecha, hora, ubicación, descripción y número de cupos disponibles. El sistema permitirá filtrar eventos por tipo, rango de fechas y estado (próximos, en curso o finalizados).
+Once logged in, students will be able to view the catalog of available events. For each event, information such as title, activity type, date, time, location, description, and number of available spots will be displayed. The system will allow users to filter events by type, date range, and status (upcoming, ongoing, or completed).
 
-Al seleccionar un evento, el estudiante podrá visualizar su detalle y, si lo desea, solicitar la inscripción. El sistema validará que existan cupos disponibles y que el estudiante no esté previamente inscrito en ese evento.
+When selecting an event, the student will be able to view its details and, if desired, request registration. The system will verify that there are available spots and that the student is not already registered for that event.
 
-Adicionalmente, el proceso de inscripción dependerá del tipo de evento, aplicando validaciones específicas:
+Additionally, the registration process will depend on the type of event, with specific validations applied:
 
-Talleres: se deberá validar el cumplimiento de un requisito previo. El cumplimiento del requisito deberá verificarse consultando la información académica del estudiante disponible en la base de datos relacional.
+Workshops: Compliance with a prerequisite must be validated. Compliance with the prerequisite must be verified by consulting the student’s academic information available in the relational database.
 
-Torneos deportivos: se deberá verificar que el estudiante no esté inscrito en otro evento del mismo tipo en un horario que se traslape.
+Sports tournaments: It must be verified that the student is not registered for another event of the same type at a time that overlaps.
 
-Actividades de voluntariado: se deberá validar el cumplimiento de un mínimo de horas requeridas.
+Volunteer activities: Compliance with a minimum number of required hours must be validated.
 
-Charlas: no requerirán validaciones adicionales más allá de la disponibilidad de cupos.
+Talks: No additional validations are required beyond checking availability.
 
-Si la inscripción es válida, se registrará la participación del estudiante y se mostrará una confirmación.
+If the registration is valid, the student’s participation will be recorded and a confirmation will be displayed.
 
-El estudiante podrá cancelar su inscripción desde su perfil. En caso de cancelación válida, el sistema liberará el cupo correspondiente.
+The student may cancel their registration from their profile. In the event of a valid cancellation, the system will release the corresponding spot.
 
-Los organizadores podrán crear eventos ingresando información como título, descripción, tipo, fecha, hora de inicio y finalización, ubicación y número máximo de asistentes.
+Organizers will be able to create events by entering information such as title, description, type, date, start and end times, location, and maximum number of attendees.
 
-El sistema deberá contemplar diferentes tipos de eventos, cada uno con características específicas:
+The system should support different types of events, each with specific characteristics:
 
-Talleres: podrán incluir lista de materiales requeridos y condiciones previas (requisito de haber realizado previamente un curso específico o estar en determinado semestre).
+Workshops: may include a list of required materials and prerequisites (such as having previously completed a specific course or being in a certain semester).
 
-Charlas: podría incluir información del conferencista (nombre, perfil, afiliación), enlaces relacionados (ej: streaming, recursos), descripción extendida.
+Talks: may include information about the speaker (name, profile, affiliation), related links (e.g., livestream, resources), and an extended description.
 
-Torneos deportivos: podrían incluir: tipo de deporte, reglas específicas del torneo, número de equipos o participantes por equipo, estructura del torneo (eliminación directa, grupos, etc.).
+Sports tournaments: may include: type of sport, specific tournament rules, number of teams or participants per team, and tournament structure (knockout, groups, etc.).
 
-Actividades de voluntariado: podrán incluir: causa o comunidad beneficiada, número de horas requeridas, actividades a realizar (lista), información logística (puntos de encuentro, responsables).
+Volunteer activities: may include: cause or community benefiting, number of hours required, activities to be performed (list), logistical information (meeting points, coordinators).
 
-Otros eventos (culturales, clubes, etc.) podrán contener información adicional no prevista inicialmente.
+Other events (cultural, clubs, etc.) may contain additional information not initially planned.
 
-El sistema validará que la fecha no sea pasada y que el número de cupos sea mayor que cero antes de permitir la publicación. La solución deberá proponer un modelo de datos que permita representar esta variabilidad de forma eficiente y flexible.
+The system will verify that the date is not in the past and that the number of available spots is greater than zero before allowing the event to be published. The solution must propose a data model that allows this variability to be represented efficiently and flexibly.
 
-Al crearse el evento, se generará un código único que permitirá su identificación.
+When the event is created, a unique code will be generated to identify it.
 
-Una vez publicado un evento, los organizadores podrán consultar la lista de inscritos, incluyendo nombre, código estudiantil y correo institucional. Adicionalmente, el sistema permitirá exportar esta información en formato CSV para fines administrativos y control de asistencia.
+Once an event is published, organizers will be able to view the list of registrants, including name, student ID, and institutional email address. Additionally, the system will allow this information to be exported in CSV format for administrative purposes and attendance tracking.
 
-Adicionalmente, el sistema deberá mantener una estructura relacional para estadísticas de eventos, orientada a la consulta administrativa. Esta estructura no hará parte del modelo transaccional principal del sistema, sino que almacenará información agregada sobre cada evento, como número de inscritos, cancelaciones, asistentes y porcentaje de ocupación. La solución deberá definir cuándo y cómo se actualiza esta información, garantizando consistencia entre los datos operacionales y las estadísticas.
+In addition, the system must maintain a relational structure for event statistics, designed for administrative queries. This structure will not be part of the system’s main transactional model; rather, it will store aggregated information about each event, such as the number of registrants, cancellations, attendees, and occupancy rate. The solution must define when and how this information is updated, ensuring consistency between operational data and statistics.
 
-El cliente desea propuestas innovadoras, para ello tendrá en cuenta que se muestren informes que puedan ser de interés para los usuarios, por lo menos dos informes que tengan valor para el usuario.
+The client is seeking innovative proposals; to this end, it will consider the inclusion of reports that may be of interest to users, with at least two reports that provide value to the user.
 
-Dado que la plataforma manejará información personal de los estudiantes y será utilizada frecuentemente durante el semestre académico, la universidad espera que el sistema tenga alta disponibilidad durante los periodos académicos y que las consultas de eventos y procesos de inscripción se realicen sin demoras perceptibles para los usuarios. Asimismo, la información personal registrada en el sistema deberá almacenarse de forma segura y no podrá ser visible para otros estudiantes distintos al organizador del evento o al personal autorizado.
-
-
+Since the platform will handle students’ personal information and will be used frequently during the academic semester, the university expects the system to have high availability during academic periods and for event inquiries and registration processes to be carried out without delays noticeable to users. Furthermore, the personal information recorded in the system must be stored securely and must not be visible to students other than the event organizer or authorized staff.

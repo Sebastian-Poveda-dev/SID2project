@@ -1,4 +1,4 @@
-Entidades
+ENTITIES
 
 FACULTIES
 
@@ -105,7 +105,9 @@ semester
 subject_code
 professor_id
 
-Relationships
+--- --- --- ---
+
+RELATIONSHIPS
 
 FACULTIES
 
