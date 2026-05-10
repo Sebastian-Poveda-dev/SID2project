@@ -1,49 +1,61 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { LogIn, UserPlus } from 'lucide-react';
+import { LogIn, UserPlus, CalendarDays, ClipboardList, User } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { Button } from '../components/ui';
 import { useAuth } from '../hooks/useAuth';
 
+function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
+  return (
+    <Link
+      to={to}
+      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+    >
+      {children}
+    </Link>
+  );
+}
+
 export default function PublicLayout() {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, isStudent, user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar>
-        <Link
-          to="/events"
-          className="text-sm text-zinc-600 hover:text-zinc-900 transition-colors px-2 py-1 rounded-lg hover:bg-zinc-100"
-        >
+        <NavLink to="/events">
+          <CalendarDays className="w-4 h-4" />
           Eventos
-        </Link>
+        </NavLink>
 
         {isAuthenticated ? (
           <>
-            <Link
-              to="/profile"
-              className="text-sm text-zinc-600 hover:text-zinc-900 transition-colors px-2 py-1 rounded-lg hover:bg-zinc-100"
-            >
+            {isStudent && (
+              <NavLink to="/my-registrations">
+                <ClipboardList className="w-4 h-4" />
+                Mis inscripciones
+              </NavLink>
+            )}
+
+            <NavLink to="/profile">
+              <User className="w-4 h-4" />
               {user?.username}
-            </Link>
+            </NavLink>
+
             <Button variant="secondary" size="sm" onClick={handleLogout}>
               Cerrar sesión
             </Button>
           </>
         ) : (
           <>
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-1.5 text-sm text-zinc-600 hover:text-zinc-900 transition-colors px-2 py-1 rounded-lg hover:bg-zinc-100"
-            >
+            <NavLink to="/login">
               <LogIn className="w-4 h-4" />
               Iniciar sesión
-            </Link>
+            </NavLink>
             <Button
               size="sm"
               icon={<UserPlus className="w-4 h-4" />}
