@@ -2,11 +2,14 @@ package com.uniplan.controller;
 
 import com.uniplan.dto.request.RegistrationRequestDTO;
 import com.uniplan.dto.response.RegistrationResponseDTO;
+import com.uniplan.security.service.CustomUserDetails;
 import com.uniplan.service.RegistrationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,21 +21,21 @@ public class RegistrationController {
 
     private final RegistrationService registrationService;
 
-    // studentId is a temporary param — will be extracted from SecurityContext once JWT is active
     @PostMapping
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<RegistrationResponseDTO> register(
             @Valid @RequestBody RegistrationRequestDTO request,
-            @RequestParam Long studentId) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(registrationService.register(request.getEventId(), studentId));
+                .body(registrationService.register(request.getEventId(), userDetails.getUserId()));
     }
 
-    // studentId is a temporary param — will be extracted from SecurityContext once JWT is active
     @DeleteMapping("/{eventId}")
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<Void> cancel(
             @PathVariable Long eventId,
-            @RequestParam Long studentId) {
-        registrationService.cancel(eventId, studentId);
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        registrationService.cancel(eventId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 
