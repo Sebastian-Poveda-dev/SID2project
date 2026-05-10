@@ -10,13 +10,13 @@ import com.uniplan.exception.DuplicateRegistrationException;
 import com.uniplan.exception.ResourceNotFoundException;
 import com.uniplan.exception.UnauthorizedOperationException;
 import com.uniplan.repository.jpa.UniplanUserRepository;
+import com.uniplan.security.jwt.JwtService;
+import com.uniplan.security.service.CustomUserDetails;
 import com.uniplan.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +25,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UniplanUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     @Override
     public UserResponseDTO register(RegisterRequestDTO request) {
@@ -65,8 +66,7 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedOperationException("Invalid credentials");
         }
 
-        // TODO: Replace with real JWT token once security layer is active.
-        String token = "placeholder-" + UUID.randomUUID();
+        String token = jwtService.generateToken(new CustomUserDetails(user));
 
         return AuthResponseDTO.builder()
                 .token(token)
