@@ -1,10 +1,13 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# ──────────────────────────────────────────────
+# Backend (Spring Boot / Maven)
+# ──────────────────────────────────────────────
+backend/target/
+backend/HELP.md
+backend/.mvn/wrapper/maven-wrapper.jar
+!backend/**/src/main/**/target/
+!backend/**/src/test/**/target/
 
-### STS ###
+### Spring Tool Suite ###
 .apt_generated
 .classpath
 .factorypath
@@ -25,9 +28,32 @@ target/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+backend/build/
+!backend/**/src/main/**/build/
+!backend/**/src/test/**/build/
 
 ### VS Code ###
 .vscode/
+
+# ──────────────────────────────────────────────
+# Frontend (framework-agnostic)
+# ──────────────────────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+frontend/.nuxt/
+frontend/.output/
+frontend/.cache/
+frontend/.parcel-cache/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# ──────────────────────────────────────────────
+# OS / editor
+# ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*~
