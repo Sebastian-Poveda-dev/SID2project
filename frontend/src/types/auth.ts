@@ -17,3 +17,11 @@ export interface AuthResponse {
   username: string;
   role: UserRole;
 }
+
+export interface JwtPayload {
+  sub: string;
+  userId: number;
+  role: UserRole;
+  iat: number;
+  exp: number;
+}

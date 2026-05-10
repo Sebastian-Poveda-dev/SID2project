@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { UserSummary } from '../types/user';
+import { isTokenExpired } from '../utils/tokenUtils';
 
 interface AuthState {
   token: string | null;
@@ -17,14 +18,18 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
 
-      login: (token, user) =>
-        set({ token, user, isAuthenticated: true }),
+      login: (token, user) => set({ token, user, isAuthenticated: true }),
 
-      logout: () =>
-        set({ token: null, user: null, isAuthenticated: false }),
+      logout: () => set({ token: null, user: null, isAuthenticated: false }),
     }),
     {
       name: 'uniplan-auth',
+      /* Validate token expiry on every app startup / tab hydration */
+      onRehydrateStorage: () => (state) => {
+        if (state?.token && isTokenExpired(state.token)) {
+          state.logout();
+        }
+      },
     }
   )
 );
