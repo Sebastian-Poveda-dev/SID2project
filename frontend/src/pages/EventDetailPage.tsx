@@ -100,7 +100,7 @@ export default function EventDetailPage() {
 
         <div className="mt-8 flex gap-3">
           <Button>Inscribirse al evento</Button>
-          <Button variant="ghost" onClick={() => navigate(-1)}>
+          <Button variant="secondary" onClick={() => navigate(-1)}>
             Volver
           </Button>
         </div>

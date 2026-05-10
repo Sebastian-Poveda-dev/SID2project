@@ -1,46 +1,76 @@
-import type { ButtonHTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { cn } from '../../utils/cn';
 
-type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
-type Size = 'sm' | 'md' | 'lg';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger';
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant;
-  size?: Size;
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   loading?: boolean;
+  icon?: ReactNode;
+  iconPosition?: 'left' | 'right';
 }
 
-const variantClasses: Record<Variant, string> = {
-  primary: 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-300',
-  secondary: 'bg-gray-100 text-gray-800 hover:bg-gray-200 disabled:opacity-50',
-  danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300',
-  ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 disabled:opacity-50',
+const variantClasses: Record<ButtonVariant, string> = {
+  primary:
+    'bg-primary-500 text-white shadow-sm hover:bg-primary-600 active:bg-primary-700 ' +
+    'disabled:bg-primary-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+  secondary:
+    'bg-zinc-100 text-zinc-800 shadow-sm hover:bg-zinc-200 active:bg-zinc-300 ' +
+    'disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2',
+  outline:
+    'border border-primary-500 text-primary-600 bg-transparent hover:bg-primary-50 active:bg-primary-100 ' +
+    'disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+  danger:
+    'bg-red-500 text-white shadow-sm hover:bg-red-600 active:bg-red-700 ' +
+    'disabled:bg-red-200 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2',
 };
 
-const sizeClasses: Record<Size, string> = {
-  sm: 'px-3 py-1.5 text-xs',
-  md: 'px-4 py-2 text-sm',
-  lg: 'px-6 py-3 text-base',
+const sizeClasses: Record<ButtonSize, string> = {
+  sm: 'h-8  px-3   text-xs  gap-1.5 rounded-lg',
+  md: 'h-10 px-4   text-sm  gap-2   rounded-xl',
+  lg: 'h-12 px-5   text-base gap-2  rounded-xl',
 };
 
 export default function Button({
   variant = 'primary',
   size = 'md',
   loading = false,
+  icon,
+  iconPosition = 'left',
   disabled,
   children,
-  className = '',
+  className,
   ...props
 }: ButtonProps) {
+  const isDisabled = disabled || loading;
+
   return (
     <button
-      disabled={disabled || loading}
-      className={`inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      disabled={isDisabled}
+      className={cn(
+        'inline-flex items-center justify-center font-medium transition-colors duration-150',
+        'focus:outline-none disabled:cursor-not-allowed',
+        variantClasses[variant],
+        sizeClasses[size],
+        className
+      )}
       {...props}
     >
       {loading && (
-        <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        <span
+          className="shrink-0 w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"
+          aria-hidden
+        />
       )}
-      {children}
+      {!loading && icon && iconPosition === 'left' && (
+        <span className="shrink-0">{icon}</span>
+      )}
+      {children && <span>{children}</span>}
+      {!loading && icon && iconPosition === 'right' && (
+        <span className="shrink-0">{icon}</span>
+      )}
     </button>
   );
 }
