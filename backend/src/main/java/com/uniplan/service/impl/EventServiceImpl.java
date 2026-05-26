@@ -161,6 +161,27 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public EventDetailResponseDTO publish(Long eventId) {
+        Event event = requireEvent(eventId);
+
+        OrganizerProfile organizer = resolveCurrentOrganizer();
+        if (!event.getOrganizer().getId().equals(organizer.getId())) {
+            throw new UnauthorizedOperationException("Only the event's organizer can publish it");
+        }
+
+        if (event.getStatus() != EventStatus.DRAFT) {
+            throw new InvalidEventStateException(
+                    "Only DRAFT events can be published. Current status: " + event.getStatus());
+        }
+
+        event.setStatus(EventStatus.PUBLISHED);
+        event = eventRepository.save(event);
+
+        EventDetailDocument doc = eventDetailRepository.findByEventId(eventId).orElse(null);
+        return mergeToDetailDTO(event, doc);
+    }
+
+    @Override
     public void cancel(Long eventId) {
         Event event = requireEvent(eventId);
 

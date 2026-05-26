@@ -21,6 +21,8 @@ public interface EventService {
 
     EventDetailResponseDTO update(Long eventId, UpdateEventRequestDTO request);
 
+    EventDetailResponseDTO publish(Long eventId);
+
     void cancel(Long eventId);
 
     List<EventSummaryResponseDTO> findUpcoming();

@@ -4,7 +4,10 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\jumar\\\\OneDrive\\\\Escritorio\\\\Universidad\\\\Semestre 10\\\\SID II\\\\SID2project\\\\src\\\\main\\\\java\\\\com\\\\uniplan\" -Recurse)",
       "Bash(Select-Object -Property FullName, Name)",
       "Bash(Format-Table -AutoSize)",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\jumar\\\\OneDrive\\\\Escritorio\\\\Universidad\\\\Semestre 10\\\\SID II\\\\SID2project\" -Recurse -Force)",
+      "Bash(Select-Object FullName)",
+      "Bash(mvn compile *)"
     ]
   }
 }

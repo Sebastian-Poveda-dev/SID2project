@@ -56,6 +56,11 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED).body(eventService.create(request));
     }
 
+    @PatchMapping("/{eventId}/publish")
+    public ResponseEntity<EventDetailResponseDTO> publish(@PathVariable Long eventId) {
+        return ResponseEntity.ok(eventService.publish(eventId));
+    }
+
     @PutMapping("/{eventId}")
     public ResponseEntity<EventDetailResponseDTO> update(
             @PathVariable Long eventId,
