@@ -1,6 +1,7 @@
 package com.uniplan.service.impl;
 
 import com.uniplan.document.EventDetailDocument;
+import com.uniplan.dto.response.RegistrationDetailResponseDTO;
 import com.uniplan.dto.response.RegistrationResponseDTO;
 import com.uniplan.entity.Event;
 import com.uniplan.entity.EventRegistration;
@@ -18,18 +19,27 @@ import com.uniplan.exception.ResourceNotFoundException;
 import com.uniplan.repository.jpa.EventRepository;
 import com.uniplan.repository.jpa.EventRegistrationRepository;
 import com.uniplan.repository.jpa.EventStatisticsRepository;
+import com.uniplan.repository.jpa.OrganizerProfileRepository;
 import com.uniplan.repository.jpa.UniplanUserRepository;
 import com.uniplan.repository.jpa.VolunteerParticipationRepository;
 import com.uniplan.repository.mongo.EventDetailRepository;
+import com.uniplan.exception.UnauthorizedOperationException;
+import com.uniplan.service.InstitutionalValidationService;
 import com.uniplan.service.RegistrationService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -41,6 +51,8 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final EventDetailRepository eventDetailRepository;
     private final VolunteerParticipationRepository volunteerRepository;
     private final EventStatisticsRepository statisticsRepository;
+    private final OrganizerProfileRepository organizerProfileRepository;
+    private final InstitutionalValidationService institutionalValidationService;
 
     // -------------------------------------------------------------------------
     // Commands
@@ -53,23 +65,39 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         validateEventIsOpen(event);
         validateSlotsAvailable(event);
-        validateNoDuplicate(eventId, studentId);
         performTypeSpecificValidation(event, student);
 
+        EventRegistration registration = registrationRepository
+                .findByIdEventIdAndIdStudentUserId(eventId, studentId)
+                .map(existing -> reactivate(existing, event))
+                .orElseGet(() -> createNew(event, student));
+
+        refreshStatistics(event);
+        return toDTO(registration);
+    }
+
+    private EventRegistration reactivate(EventRegistration existing, Event event) {
+        if (existing.getStatus() == RegistrationStatus.REGISTERED) {
+            throw new DuplicateRegistrationException(
+                    "El estudiante ya está inscrito en este evento.");
+        }
+        existing.setStatus(RegistrationStatus.REGISTERED);
+        existing.setRegistrationDate(LocalDateTime.now());
+        existing.setCancellationDate(null);
         event.setAvailableSlots(event.getAvailableSlots() - 1);
         eventRepository.save(event);
+        return registrationRepository.save(existing);
+    }
 
-        EventRegistration registration = EventRegistration.builder()
-                .id(new EventRegistrationId(eventId, studentId))
+    private EventRegistration createNew(Event event, UniplanUser student) {
+        event.setAvailableSlots(event.getAvailableSlots() - 1);
+        eventRepository.save(event);
+        return registrationRepository.save(EventRegistration.builder()
+                .id(new EventRegistrationId(event.getId(), student.getId()))
                 .event(event)
                 .student(student)
                 .status(RegistrationStatus.REGISTERED)
-                .build();
-
-        registration = registrationRepository.save(registration);
-        refreshStatistics(event);
-
-        return toDTO(registration);
+                .build());
     }
 
     @Override
@@ -112,6 +140,46 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .map(this::toDTO).toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<RegistrationDetailResponseDTO> findDetailsByEvent(Long eventId) {
+        requireEvent(eventId);
+        requireEventOwnershipOrAdmin(eventId);
+        return registrationRepository.findByIdEventIdAndStatus(eventId, RegistrationStatus.REGISTERED)
+                .stream()
+                .map(this::toDetailDTO)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String exportEventRegistrationsCsv(Long eventId) {
+        requireEvent(eventId);
+        requireEventOwnershipOrAdmin(eventId);
+        List<RegistrationDetailResponseDTO> registrations = findDetailsByEvent(eventId);
+
+        StringBuilder csv = new StringBuilder();
+        csv.append("Nombre Completo,Código Estudiantil,Correo Institucional,Estado,Fecha Inscripción\n");
+
+        for (RegistrationDetailResponseDTO r : registrations) {
+            csv.append(escapeCsv(r.getFullName())).append(",")
+               .append(escapeCsv(r.getInstitutionalStudentId())).append(",")
+               .append(escapeCsv(r.getInstitutionalEmail())).append(",")
+               .append(r.getRegistrationStatus()).append(",")
+               .append(r.getRegistrationDate() != null ? r.getRegistrationDate().toString() : "")
+               .append("\n");
+        }
+        return csv.toString();
+    }
+
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+
     // -------------------------------------------------------------------------
     // General validators
     // -------------------------------------------------------------------------
@@ -129,13 +197,6 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
     }
 
-    private void validateNoDuplicate(Long eventId, Long studentId) {
-        if (registrationRepository.existsByIdEventIdAndIdStudentUserId(eventId, studentId)) {
-            throw new DuplicateRegistrationException(
-                    "Student " + studentId + " is already registered for event " + eventId);
-        }
-    }
-
     // -------------------------------------------------------------------------
     // Type-specific validators
     // -------------------------------------------------------------------------
@@ -150,34 +211,37 @@ public class RegistrationServiceImpl implements RegistrationService {
     }
 
     /**
-     * Workshop prerequisite validation.
-     *
-     * The dynamicData (MongoDB) may contain:
-     *   - "requiredCourse"    (String)  — subject code the student must have passed
-     *   - "minimumSemester"  (Integer) — minimum semester the student must be in
-     *
-     * TODO: Wire a read-only JdbcTemplate / InstitutionalDataService to query the
-     * institutional ENROLLMENTS table:
-     *   SELECT COUNT(*) FROM ENROLLMENTS e
-     *   WHERE e.student_id = ? AND e.NRC IN (
-     *     SELECT NRC FROM GROUPS WHERE subject_code = ?
-     *   ) AND e.status = 'Passed'
-     *
-     * Until the institutional data source is configured, prerequisite checks are
-     * logged but do not block registration.
+     * Verifies workshop prerequisites against the institutional DB.
+     * - requiredCourse: student must have status='Approved' for that subject
+     * - minimumSemester: student must have completed that many distinct semesters
+     * Delegates to InstitutionalValidationService (real or bypass depending on config).
      */
+    private Optional<EventDetailDocument> safeGetDetail(Long eventId) {
+        try {
+            return eventDetailRepository.findByEventId(eventId);
+        } catch (Exception e) {
+            log.warn("[Registration] MongoDB unavailable, skipping dynamic-data validation for event {}: {}", eventId, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
     private void validateWorkshopPrerequisites(Event event, UniplanUser student) {
-        EventDetailDocument doc = eventDetailRepository.findByEventId(event.getId()).orElse(null);
+        String institutionalStudentId = student.getInstitutionalStudentId();
+        if (institutionalStudentId == null) return;
+
+        EventDetailDocument doc = safeGetDetail(event.getId()).orElse(null);
         if (doc == null || doc.getDynamicData() == null) return;
 
         Map<String, Object> data = doc.getDynamicData();
-        Object requiredCourse   = data.get("requiredCourse");
-        Object minimumSemester  = data.get("minimumSemester");
+        String requiredCourse = data.get("requiredCourse") != null
+                ? String.valueOf(data.get("requiredCourse")) : null;
+        Integer minimumSemester = data.get("minimumSemester") != null
+                ? ((Number) data.get("minimumSemester")).intValue() : null;
 
-        if (requiredCourse != null || minimumSemester != null) {
-            // Institutional DB not yet wired — prerequisite check is a no-op.
-            // Replace with real InstitutionalDataService calls once available.
-        }
+        if (requiredCourse == null && minimumSemester == null) return;
+
+        institutionalValidationService.validateWorkshopPrerequisites(
+                institutionalStudentId, requiredCourse, minimumSemester);
     }
 
     /**
@@ -209,7 +273,7 @@ public class RegistrationServiceImpl implements RegistrationService {
      * declared in the event's MongoDB dynamicData ("requiredHours" key).
      */
     private void validateVolunteerHours(Event event, UniplanUser student) {
-        EventDetailDocument doc = eventDetailRepository.findByEventId(event.getId()).orElse(null);
+        EventDetailDocument doc = safeGetDetail(event.getId()).orElse(null);
         if (doc == null || doc.getDynamicData() == null) return;
 
         Object requiredHoursObj = doc.getDynamicData().get("requiredHours");
@@ -261,7 +325,23 @@ public class RegistrationServiceImpl implements RegistrationService {
     private RegistrationResponseDTO toDTO(EventRegistration reg) {
         return RegistrationResponseDTO.builder()
                 .eventId(reg.getId().getEventId())
+                .eventTitle(reg.getEvent().getTitle())
+                .eventType(reg.getEvent().getEventType())
+                .eventStartDateTime(reg.getEvent().getStartDateTime())
                 .studentId(reg.getId().getStudentUserId())
+                .registrationStatus(reg.getStatus())
+                .registrationDate(reg.getRegistrationDate())
+                .build();
+    }
+
+    private RegistrationDetailResponseDTO toDetailDTO(EventRegistration reg) {
+        UniplanUser student = reg.getStudent();
+        String fullName = student.getFirstName() + " " + student.getLastName();
+        return RegistrationDetailResponseDTO.builder()
+                .studentId(student.getId())
+                .fullName(fullName.trim())
+                .institutionalStudentId(student.getInstitutionalStudentId())
+                .institutionalEmail(student.getInstitutionalEmail())
                 .registrationStatus(reg.getStatus())
                 .registrationDate(reg.getRegistrationDate())
                 .build();
@@ -279,5 +359,26 @@ public class RegistrationServiceImpl implements RegistrationService {
     private UniplanUser requireStudent(Long studentId) {
         return userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found: " + studentId));
+    }
+
+    /**
+     * ADMIN can access any event's data.
+     * EMPLOYEE can only access events they own as organizer.
+     */
+    private void requireEventOwnershipOrAdmin(Long eventId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        if (isAdmin) return;
+
+        String username = auth.getName();
+        UniplanUser user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UnauthorizedOperationException("Usuario no encontrado."));
+        organizerProfileRepository.findByUserId(user.getId()).ifPresent(organizer -> {
+            Event event = requireEvent(eventId);
+            if (!event.getOrganizer().getId().equals(organizer.getId())) {
+                throw new UnauthorizedOperationException(
+                        "Solo puedes acceder a los inscritos de tus propios eventos.");
+            }
+        });
     }
 }

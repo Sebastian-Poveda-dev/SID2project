@@ -3,7 +3,6 @@ package com.uniplan.controller;
 import com.uniplan.dto.request.LoginRequestDTO;
 import com.uniplan.dto.request.RegisterRequestDTO;
 import com.uniplan.dto.response.AuthResponseDTO;
-import com.uniplan.dto.response.UserResponseDTO;
 import com.uniplan.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
+    public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
     }
 

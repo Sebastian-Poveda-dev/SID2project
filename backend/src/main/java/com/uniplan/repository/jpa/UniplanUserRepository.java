@@ -15,6 +15,8 @@ public interface UniplanUserRepository extends JpaRepository<UniplanUser, Long> 
 
     Optional<UniplanUser> findByInstitutionalStudentId(String institutionalStudentId);
 
+    boolean existsByInstitutionalEmail(String institutionalEmail);
+
     Optional<UniplanUser> findByInstitutionalEmployeeId(String institutionalEmployeeId);
 
     List<UniplanUser> findByRole(UserRole role);

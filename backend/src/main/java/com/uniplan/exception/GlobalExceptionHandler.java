@@ -43,6 +43,12 @@ public class GlobalExceptionHandler {
 
     // ── 422 ──────────────────────────────────────────────────────────────────
 
+    @ExceptionHandler(InstitutionalValidationException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInstitutionalValidation(
+            InstitutionalValidationException ex, HttpServletRequest request) {
+        return build(HttpStatus.UNPROCESSABLE_ENTITY, "Validación institucional fallida", ex.getMessage(), request);
+    }
+
     @ExceptionHandler(InvalidEventStateException.class)
     public ResponseEntity<ErrorResponseDTO> handleInvalidState(
             InvalidEventStateException ex, HttpServletRequest request) {

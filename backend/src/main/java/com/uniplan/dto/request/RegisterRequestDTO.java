@@ -19,6 +19,14 @@ public class RegisterRequestDTO {
     private String username;
 
     @NotBlank
+    @Size(max = 60)
+    private String firstName;
+
+    @NotBlank
+    @Size(max = 60)
+    private String lastName;
+
+    @NotBlank
     @Size(max = 15)
     private String institutionalStudentId;
 

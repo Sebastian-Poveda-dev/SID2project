@@ -55,6 +55,12 @@ public class UniplanUser {
     @Column(name = "username", nullable = false, unique = true, length = 50)
     private String username;
 
+    @Column(name = "first_name", nullable = false, length = 60)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false, length = 60)
+    private String lastName;
+
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
@@ -65,6 +71,9 @@ public class UniplanUser {
     // Foreign reference to institutional STUDENTS(id) — read-only external DB.
     @Column(name = "institutional_student_id", length = 15)
     private String institutionalStudentId;
+
+    @Column(name = "institutional_email", unique = true, length = 100)
+    private String institutionalEmail;
 
     // Foreign reference to institutional EMPLOYEES(id) — read-only external DB.
     @Column(name = "institutional_employee_id", length = 15)

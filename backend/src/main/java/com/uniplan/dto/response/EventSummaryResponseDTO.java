@@ -14,8 +14,10 @@ public class EventSummaryResponseDTO {
     Long id;
     String eventCode;
     String title;
+    String description;
     EventType eventType;
     LocalDateTime startDateTime;
+    LocalDateTime endDateTime;
     String location;
     int availableSlots;
     EventStatus status;

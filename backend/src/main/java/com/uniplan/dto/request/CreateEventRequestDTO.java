@@ -1,7 +1,6 @@
 package com.uniplan.dto.request;
 
 import com.uniplan.entity.enums.EventType;
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -38,12 +37,10 @@ public class CreateEventRequestDTO {
     private EventType eventType;
 
     @NotNull
-    @Future
     private LocalDateTime startDateTime;
 
     // Cross-field validation (endDateTime > startDateTime) is enforced at the service layer.
     @NotNull
-    @Future
     private LocalDateTime endDateTime;
 
     @NotBlank

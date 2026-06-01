@@ -22,10 +22,6 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-/**
- * Extends a UniplanUser with organizer-specific permissions and type classification.
- * Owns the foreign key to uniplan_users.
- */
 @Entity
 @Table(
         name = "organizer_profiles",
@@ -53,6 +49,38 @@ public class OrganizerProfile {
     @Column(name = "enabled", nullable = false)
     @Builder.Default
     private boolean enabled = true;
+
+    // ── FACULTY_MEMBER fields ─────────────────────────────────────────────────
+
+    @Column(name = "faculty_code")
+    private Integer facultyCode;
+
+    @Column(name = "department", length = 100)
+    private String department;
+
+    @Column(name = "specialization_area", length = 100)
+    private String specializationArea;
+
+    // ── STUDENT_LEADER fields ─────────────────────────────────────────────────
+
+    @Column(name = "academic_program_code")
+    private Integer academicProgramCode;
+
+    @Column(name = "semester", length = 10)
+    private String semester;
+
+    @Column(name = "student_group", length = 100)
+    private String studentGroup;
+
+    // ── WELLNESS_STAFF fields ─────────────────────────────────────────────────
+
+    @Column(name = "administrative_area_code")
+    private Integer administrativeAreaCode;
+
+    @Column(name = "job_title", length = 100)
+    private String jobTitle;
+
+    // ─────────────────────────────────────────────────────────────────────────
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

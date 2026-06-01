@@ -15,9 +15,13 @@ import com.uniplan.exception.BusinessValidationException;
 import com.uniplan.exception.InvalidEventStateException;
 import com.uniplan.exception.ResourceNotFoundException;
 import com.uniplan.exception.UnauthorizedOperationException;
+import com.uniplan.repository.jpa.EventAttendanceRepository;
+import com.uniplan.repository.jpa.EventRegistrationRepository;
 import com.uniplan.repository.jpa.EventRepository;
+import com.uniplan.repository.jpa.EventStatisticsRepository;
 import com.uniplan.repository.jpa.OrganizerProfileRepository;
 import com.uniplan.repository.jpa.UniplanUserRepository;
+import com.uniplan.repository.jpa.VolunteerParticipationRepository;
 import com.uniplan.repository.mongo.EventDetailRepository;
 import com.uniplan.service.EventService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -38,6 +44,10 @@ public class EventServiceImpl implements EventService {
     private final OrganizerProfileRepository organizerProfileRepository;
     private final UniplanUserRepository userRepository;
     private final EventDetailRepository eventDetailRepository;
+    private final EventRegistrationRepository registrationRepository;
+    private final EventStatisticsRepository statisticsRepository;
+    private final EventAttendanceRepository attendanceRepository;
+    private final VolunteerParticipationRepository volunteerRepository;
 
     // -------------------------------------------------------------------------
     // Queries
@@ -73,6 +83,14 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<EventSummaryResponseDTO> findMyEvents() {
+        OrganizerProfile organizer = resolveCurrentOrganizer();
+        return eventRepository.findByOrganizerId(organizer.getId())
+                .stream().map(this::toSummaryDTO).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<EventSummaryResponseDTO> search(String keyword) {
         if (keyword == null || keyword.isBlank()) {
             return eventRepository.findAll().stream().map(this::toSummaryDTO).toList();
@@ -92,6 +110,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventDetailResponseDTO create(CreateEventRequestDTO request) {
         validateEventDates(request.getStartDateTime(), request.getEndDateTime());
+        validateDynamicData(request.getEventType(), request.getDynamicData());
 
         // Organizer identity comes from the security context.
         // Once JWT is active, SecurityContextHolder will hold the authenticated principal.
@@ -130,6 +149,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventDetailResponseDTO update(Long eventId, UpdateEventRequestDTO request) {
         Event event = requireEvent(eventId);
+        requireOwnershipOrAdmin(event);
 
         if (event.getStatus() == EventStatus.CANCELLED || event.getStatus() == EventStatus.COMPLETED) {
             throw new InvalidEventStateException(
@@ -163,11 +183,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventDetailResponseDTO publish(Long eventId) {
         Event event = requireEvent(eventId);
-
-        OrganizerProfile organizer = resolveCurrentOrganizer();
-        if (!event.getOrganizer().getId().equals(organizer.getId())) {
-            throw new UnauthorizedOperationException("Only the event's organizer can publish it");
-        }
+        requireOwnershipOrAdmin(event);
 
         if (event.getStatus() != EventStatus.DRAFT) {
             throw new InvalidEventStateException(
@@ -182,8 +198,27 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public void delete(Long eventId) {
+        Event event = requireEvent(eventId);
+        requireOwnershipOrAdmin(event);
+
+        // 1. Cascade: volunteer participations → attendances → registrations → statistics (PostgreSQL)
+        volunteerRepository.deleteAll(volunteerRepository.findByRegistrationIdEventId(eventId));
+        attendanceRepository.deleteAll(attendanceRepository.findByRegistrationIdEventId(eventId));
+        registrationRepository.deleteAll(registrationRepository.findByIdEventId(eventId));
+        statisticsRepository.findByEventId(eventId).ifPresent(statisticsRepository::delete);
+
+        // 2. Event detail document (MongoDB)
+        eventDetailRepository.findByEventId(eventId).ifPresent(eventDetailRepository::delete);
+
+        // 3. Event itself (PostgreSQL)
+        eventRepository.delete(event);
+    }
+
+    @Override
     public void cancel(Long eventId) {
         Event event = requireEvent(eventId);
+        requireOwnership(event);
 
         if (event.getStatus() == EventStatus.COMPLETED) {
             throw new InvalidEventStateException("Cannot cancel a completed event");
@@ -205,6 +240,29 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + eventId));
     }
 
+    /** Throws 403 if the authenticated user is not the event's organizer. */
+    private void requireOwnership(Event event) {
+        OrganizerProfile organizer = resolveCurrentOrganizer();
+        if (!event.getOrganizer().getId().equals(organizer.getId())) {
+            throw new UnauthorizedOperationException(
+                    "Solo el organizador propietario puede modificar este evento.");
+        }
+    }
+
+    /** ADMIN bypasses ownership; EMPLOYEE must own the event. */
+    private void requireOwnershipOrAdmin(Event event) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        UniplanUser user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UnauthorizedOperationException("Authentication required"));
+        if (user.getRole().name().equals("ADMIN")) return;
+        organizerProfileRepository.findByUserId(user.getId()).ifPresent(organizer -> {
+            if (!event.getOrganizer().getId().equals(organizer.getId())) {
+                throw new UnauthorizedOperationException(
+                        "Solo el organizador propietario o un administrador puede eliminar este evento.");
+            }
+        });
+    }
+
     /**
      * Resolves the organizer profile for the currently authenticated user.
      * Will work correctly once JWT populates the SecurityContext.
@@ -220,7 +278,40 @@ public class EventServiceImpl implements EventService {
 
     private void validateEventDates(LocalDateTime start, LocalDateTime end) {
         if (!end.isAfter(start)) {
-            throw new BusinessValidationException("End date/time must be after start date/time");
+            throw new BusinessValidationException("La fecha de fin debe ser posterior a la fecha de inicio.");
+        }
+    }
+
+    /**
+     * Verifies that the required keys for each event type are present in dynamicData.
+     * Keys documented in EventDetailDocument are enforced here.
+     */
+    private void validateDynamicData(EventType type, Map<String, Object> data) {
+        Set<String> required = switch (type) {
+            case WORKSHOP        -> Set.of("requiredMaterials", "minimumSemester");
+            case TALK            -> Set.of("speaker", "affiliation");
+            case SPORTS_TOURNAMENT -> Set.of("sportType", "teamCount", "bracketType");
+            case VOLUNTEER       -> Set.of("beneficiaryCause", "requiredHours");
+            case OTHER           -> Set.of(); // fully open — no required keys
+        };
+
+        if (required.isEmpty()) return;
+
+        if (data == null) {
+            throw new BusinessValidationException(
+                    "El campo dynamicData es requerido para eventos de tipo " + type +
+                    ". Campos requeridos: " + required);
+        }
+
+        List<String> missing = required.stream()
+                .filter(key -> !data.containsKey(key) || data.get(key) == null)
+                .sorted()
+                .toList();
+
+        if (!missing.isEmpty()) {
+            throw new BusinessValidationException(
+                    "Faltan campos requeridos en dynamicData para el tipo " + type +
+                    ": " + missing);
         }
     }
 
@@ -283,8 +374,10 @@ public class EventServiceImpl implements EventService {
                 .id(event.getId())
                 .eventCode(event.getEventCode())
                 .title(event.getTitle())
+                .description(event.getDescription())
                 .eventType(event.getEventType())
                 .startDateTime(event.getStartDateTime())
+                .endDateTime(event.getEndDateTime())
                 .location(event.getLocation())
                 .availableSlots(event.getAvailableSlots())
                 .status(event.getStatus())

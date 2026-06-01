@@ -27,11 +27,13 @@ public class OrganizerController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<OrganizerResponseDTO>> findAll() {
         return ResponseEntity.ok(organizerService.findAll());
     }
 
     @GetMapping("/{organizerId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OrganizerResponseDTO> findById(@PathVariable Long organizerId) {
         return ResponseEntity.ok(organizerService.findById(organizerId));
     }

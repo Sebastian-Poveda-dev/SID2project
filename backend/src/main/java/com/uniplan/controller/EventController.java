@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -33,6 +34,12 @@ public class EventController {
         return ResponseEntity.ok(eventService.findAll(eventType, status, startDate, endDate));
     }
 
+    @GetMapping("/my-events")
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    public ResponseEntity<List<EventSummaryResponseDTO>> findMyEvents() {
+        return ResponseEntity.ok(eventService.findMyEvents());
+    }
+
     // Declared before /{eventId} to prevent path collision
     @GetMapping("/upcoming")
     public ResponseEntity<List<EventSummaryResponseDTO>> findUpcoming() {
@@ -51,17 +58,20 @@ public class EventController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')")
     public ResponseEntity<EventDetailResponseDTO> create(
             @Valid @RequestBody CreateEventRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(eventService.create(request));
     }
 
     @PatchMapping("/{eventId}/publish")
+    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')")
     public ResponseEntity<EventDetailResponseDTO> publish(@PathVariable Long eventId) {
         return ResponseEntity.ok(eventService.publish(eventId));
     }
 
     @PutMapping("/{eventId}")
+    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')")
     public ResponseEntity<EventDetailResponseDTO> update(
             @PathVariable Long eventId,
             @Valid @RequestBody UpdateEventRequestDTO request) {
@@ -69,8 +79,9 @@ public class EventController {
     }
 
     @DeleteMapping("/{eventId}")
-    public ResponseEntity<Void> cancel(@PathVariable Long eventId) {
-        eventService.cancel(eventId);
+    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable Long eventId) {
+        eventService.delete(eventId);
         return ResponseEntity.noContent().build();
     }
 }

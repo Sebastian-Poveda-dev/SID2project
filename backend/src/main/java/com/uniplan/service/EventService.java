@@ -25,7 +25,11 @@ public interface EventService {
 
     void cancel(Long eventId);
 
+    void delete(Long eventId);
+
     List<EventSummaryResponseDTO> findUpcoming();
 
     List<EventSummaryResponseDTO> search(String keyword);
+
+    List<EventSummaryResponseDTO> findMyEvents();
 }
