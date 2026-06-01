@@ -1,7 +1,11 @@
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CalendarDays, MapPin, Users, Tag, ArrowLeft } from 'lucide-react';
+import { CalendarDays, MapPin, Users, Tag, ArrowLeft, CheckCircle } from 'lucide-react';
 import Button from '../components/ui/Button';
-import type { EventDetail, EventType } from '../types/event';
+import type { EventType } from '../types/event';
+import { useEvent } from '../features/events/hooks/useEvent';
+import { registerForEvent, cancelRegistration, fetchMyRegistrations } from '../features/registrations/services/registrationService';
+import { useAuthStore } from '../store/authStore';
 
 const EVENT_TYPE_LABELS: Record<EventType, string> = {
   WORKSHOP: 'Taller',
@@ -36,13 +40,62 @@ function DynamicDataSection({ data }: DynamicDataSectionProps) {
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { event, loading, error, retry } = useEvent(id ? Number(id) : undefined);
+  const { user } = useAuthStore();
+  const [registering, setRegistering] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [isRegistered, setIsRegistered] = useState<boolean | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const event = null as EventDetail | null;
+  useEffect(() => {
+    if (user?.role !== 'STUDENT' || !event) return;
+    fetchMyRegistrations()
+      .then((regs) => setIsRegistered(regs.some((r) => r.eventId === event.id && r.registrationStatus === 'REGISTERED')))
+      .catch(() => setIsRegistered(false));
+  }, [event, user]);
 
-  if (!event) {
+  async function handleRegister() {
+    if (!event) return;
+    setRegistering(true);
+    setActionError(null);
+    try {
+      await registerForEvent(event.id);
+      setIsRegistered(true);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Error al inscribirse.');
+    } finally {
+      setRegistering(false);
+    }
+  }
+
+  async function handleCancel() {
+    if (!event) return;
+    setCancelling(true);
+    setActionError(null);
+    try {
+      await cancelRegistration(event.id);
+      setIsRegistered(false);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Error al cancelar.');
+    } finally {
+      setCancelling(false);
+    }
+  }
+
+  if (loading) {
     return (
       <div className="text-center py-20 text-gray-400">
-        <p className="text-sm">Cargando evento #{id}…</p>
+        <p className="text-sm">Cargando evento…</p>
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="text-center py-20 text-red-400">
+        <p className="text-sm mb-3">{error ?? 'Evento no encontrado.'}</p>
+        <button onClick={retry} className="text-indigo-600 text-sm underline mr-4">Reintentar</button>
+        <button onClick={() => navigate(-1)} className="text-gray-500 text-sm underline">Volver</button>
       </div>
     );
   }
@@ -98,8 +151,30 @@ export default function EventDetailPage() {
 
         {event.dynamicData && <DynamicDataSection data={event.dynamicData} />}
 
-        <div className="mt-8 flex gap-3">
-          <Button>Inscribirse al evento</Button>
+        {isRegistered === true && (
+          <div className="mt-6 flex items-center gap-2 text-green-600 bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm">
+            <CheckCircle className="w-4 h-4 shrink-0" />
+            Estás inscrito en este evento.
+          </div>
+        )}
+
+        {actionError && (
+          <div className="mt-6 text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm">
+            {actionError}
+          </div>
+        )}
+
+        <div className="mt-6 flex gap-3">
+          {user?.role === 'STUDENT' && isRegistered === false && (
+            <Button onClick={handleRegister} disabled={registering}>
+              {registering ? 'Inscribiendo…' : 'Inscribirse al evento'}
+            </Button>
+          )}
+          {user?.role === 'STUDENT' && isRegistered === true && (
+            <Button variant="secondary" onClick={handleCancel} disabled={cancelling}>
+              {cancelling ? 'Cancelando…' : 'Cancelar inscripción'}
+            </Button>
+          )}
           <Button variant="secondary" onClick={() => navigate(-1)}>
             Volver
           </Button>

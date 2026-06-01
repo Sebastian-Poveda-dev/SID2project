@@ -41,6 +41,9 @@ export interface EventDetail extends EventSummary {
 
 export interface RegistrationResponse {
   eventId: number;
+  eventTitle: string;
+  eventType: EventType;
+  eventStartDateTime: string;
   studentId: number;
   registrationStatus: RegistrationStatus;
   registrationDate: string;

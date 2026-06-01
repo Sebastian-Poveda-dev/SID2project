@@ -1,6 +1,7 @@
 import { CalendarDays, MapPin, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { EventSummary, EventType } from '../types/event';
+import { useEvents } from '../features/events/hooks/useEvents';
 
 const EVENT_TYPE_LABELS: Record<EventType, string> = {
   WORKSHOP: 'Taller',
@@ -65,7 +66,7 @@ function EventCard({ event }: EventCardProps) {
 }
 
 export default function EventsPage() {
-  const events: EventSummary[] = [];
+  const { events, loading, error, retry } = useEvents();
 
   return (
     <div>
@@ -76,12 +77,27 @@ export default function EventsPage() {
         </p>
       </div>
 
-      {events.length === 0 ? (
+      {loading && (
+        <div className="text-center py-20 text-gray-400">
+          <p className="text-sm">Cargando eventos...</p>
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="text-center py-20 text-red-400">
+          <p className="text-sm mb-3">{error}</p>
+          <button onClick={retry} className="text-indigo-600 text-sm underline">Reintentar</button>
+        </div>
+      )}
+
+      {!loading && !error && events.length === 0 && (
         <div className="text-center py-20 text-gray-400">
           <CalendarDays className="w-10 h-10 mx-auto mb-3 opacity-40" />
           <p className="text-sm">No hay eventos disponibles en este momento.</p>
         </div>
-      ) : (
+      )}
+
+      {!loading && !error && events.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {events.map((event) => (
             <EventCard key={event.id} event={event} />

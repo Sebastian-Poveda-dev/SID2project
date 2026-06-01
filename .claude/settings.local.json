@@ -7,7 +7,31 @@
       "Bash(git mv *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\jumar\\\\OneDrive\\\\Escritorio\\\\Universidad\\\\Semestre 10\\\\SID II\\\\SID2project\" -Recurse -Force)",
       "Bash(Select-Object FullName)",
-      "Bash(mvn compile *)"
+      "Bash(mvn compile *)",
+      "Bash(./mvnw compile *)",
+      "Bash(sudo -u postgres psql -d university -c \"\\\\d employees\")",
+      "Bash(sudo -u postgres psql -d university -c \"\\\\d faculties\")",
+      "Bash(sudo -u postgres psql -d university -c \"\\\\d programs\")",
+      "Bash(sudo -u postgres psql -d university -c \"\\\\d groups\")",
+      "Bash(psql -U postgres -d university -c \"\\\\d employees\")",
+      "Bash(psql -U postgres -d university -c \"\\\\d faculties\")",
+      "Bash(psql -U postgres -d university -c \"\\\\d programs\")",
+      "Bash(psql -U postgres -d university -c \"\\\\d groups\")",
+      "Bash(psql -U postgres -d university -c \"\\\\d areas\")",
+      "Bash(psql \"postgresql://postgres@localhost:5432/university\" -c \"\\\\d employees; \\\\d faculties; \\\\d programs; \\\\d groups; \\\\d areas; \\\\d departments\")",
+      "Bash(psql *)",
+      "Bash(xargs cat)",
+      "Bash(PGPASSWORD=uniplan psql *)",
+      "Bash(curl -s http://localhost:8080/api/v1/auth/login -X POST -H \"Content-Type: application/json\" -d '{\"username\":\"bienestar_admin\",\"password\":\"Admin2024!\"}')",
+      "Bash(curl *)",
+      "Bash(mongosh *)",
+      "Bash(./mvnw spring-boot:run)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(pkill -f \"UniplanApplication\")",
+      "Bash(lsof -ti:8080)",
+      "Bash(xargs kill -9)",
+      "Bash(python3 -m json.tool)",
+      "Bash(npx tsc *)"
     ]
   }
 }

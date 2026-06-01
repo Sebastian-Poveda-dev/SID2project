@@ -5,6 +5,7 @@ export const AUTH = {
 
 export const EVENTS = {
   LIST: '/events',
+  MY_EVENTS: '/events/my-events',
   DETAIL: (id: number) => `/events/${id}`,
   CREATE: '/events',
   UPDATE: (id: number) => `/events/${id}`,
@@ -14,7 +15,7 @@ export const EVENTS = {
 export const REGISTRATIONS = {
   REGISTER: '/registrations',
   CANCEL: (eventId: number) => `/registrations/${eventId}`,
-  MY_REGISTRATIONS: (studentId: number) => `/registrations/student/${studentId}`,
+  MY_REGISTRATIONS: '/registrations/my-registrations',
   BY_EVENT: (eventId: number) => `/registrations/event/${eventId}`,
 } as const;
 

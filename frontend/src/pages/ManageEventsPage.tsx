@@ -1,5 +1,9 @@
-import { Settings, CalendarDays } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { Settings, CalendarDays, PlusCircle } from 'lucide-react';
 import type { EventSummary, EventType, EventStatus } from '../types/event';
+import { fetchMyEvents, fetchEvents, deleteEvent } from '../features/events/services/eventService';
+import { useAuthStore } from '../store/authStore';
 
 const EVENT_TYPE_LABELS: Record<EventType, string> = {
   WORKSHOP: 'Taller',
@@ -26,21 +30,74 @@ const STATUS_COLORS: Record<EventStatus, string> = {
 };
 
 export default function ManageEventsPage() {
-  const events: EventSummary[] = [];
+  const [events, setEvents] = useState<EventSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'ADMIN';
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setEvents(isAdmin ? await fetchEvents() : await fetchMyEvents());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al cargar eventos.');
+    } finally {
+      setLoading(false);
+    }
+  }, [isAdmin]);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function handleDelete(event: EventSummary) {
+    if (!confirm(`¿Eliminar "${event.title}"? Esta acción cancelará todas las inscripciones y no se puede deshacer.`)) return;
+    setDeleting(event.id);
+    try {
+      await deleteEvent(event.id);
+      setEvents((prev) => prev.filter((e) => e.id !== event.id));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al eliminar el evento.');
+    } finally {
+      setDeleting(null);
+    }
+  }
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-6">
-        <Settings className="w-5 h-5 text-indigo-600" />
-        <h1 className="text-xl font-bold text-gray-900">Gestionar eventos</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <Settings className="w-5 h-5 text-indigo-600" />
+          <h1 className="text-xl font-bold text-gray-900">
+            {isAdmin ? 'Todos los eventos' : 'Gestionar eventos'}
+          </h1>
+        </div>
+        <Link
+          to="/create-event"
+          className="flex items-center gap-1.5 bg-indigo-600 text-white text-sm px-3 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          <PlusCircle className="w-4 h-4" />
+          Nuevo evento
+        </Link>
       </div>
 
-      {events.length === 0 ? (
+      {loading && <p className="text-sm text-gray-400 py-10 text-center">Cargando eventos…</p>}
+
+      {!loading && error && (
+        <div className="text-sm text-red-500 py-10 text-center">
+          {error} <button onClick={load} className="underline ml-2 text-indigo-600">Reintentar</button>
+        </div>
+      )}
+
+      {!loading && !error && events.length === 0 && (
         <div className="text-center py-20 text-gray-400">
           <CalendarDays className="w-10 h-10 mx-auto mb-3 opacity-40" />
           <p className="text-sm">No tienes eventos creados.</p>
         </div>
-      ) : (
+      )}
+
+      {!loading && !error && events.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -63,14 +120,23 @@ export default function ManageEventsPage() {
                   </td>
                   <td className="px-4 py-3 text-gray-500">{event.availableSlots}</td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[event.status]}`}
-                    >
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[event.status]}`}>
                       {STATUS_LABELS[event.status]}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button className="text-indigo-600 hover:underline text-xs">Editar</button>
+                    <div className="flex items-center justify-end gap-3">
+                      <Link to={`/events/${event.id}`} className="text-indigo-600 hover:underline text-xs">
+                        Ver
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(event)}
+                        disabled={deleting === event.id}
+                        className="text-red-500 hover:text-red-700 text-xs disabled:opacity-50"
+                      >
+                        {deleting === event.id ? 'Eliminando…' : 'Eliminar'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
