@@ -1,0 +1,59 @@
+# ──────────────────────────────────────────────
+# Backend (Spring Boot / Maven)
+# ──────────────────────────────────────────────
+backend/target/
+backend/HELP.md
+backend/.mvn/wrapper/maven-wrapper.jar
+!backend/**/src/main/**/target/
+!backend/**/src/test/**/target/
+
+### Spring Tool Suite ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+backend/build/
+!backend/**/src/main/**/build/
+!backend/**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+# ──────────────────────────────────────────────
+# Frontend (framework-agnostic)
+# ──────────────────────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+frontend/.nuxt/
+frontend/.output/
+frontend/.cache/
+frontend/.parcel-cache/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# ──────────────────────────────────────────────
+# OS / editor
+# ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*~
