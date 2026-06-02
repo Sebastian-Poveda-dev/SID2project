@@ -129,6 +129,9 @@ export default function ManageEventsPage() {
                       <Link to={`/events/${event.id}`} className="text-indigo-600 hover:underline text-xs">
                         Ver
                       </Link>
+                      <Link to={`/manage-events/${event.id}/registrants`} className="text-emerald-600 hover:underline text-xs">
+                        Inscritos
+                      </Link>
                       <button
                         onClick={() => handleDelete(event)}
                         disabled={deleting === event.id}

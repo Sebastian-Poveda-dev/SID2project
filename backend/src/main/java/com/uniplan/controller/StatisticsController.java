@@ -2,6 +2,9 @@ package com.uniplan.controller;
 
 import com.uniplan.dto.response.EventStatisticsResponseDTO;
 import com.uniplan.dto.response.EventSummaryResponseDTO;
+import com.uniplan.dto.response.EventTypeStatisticsResponseDTO;
+import com.uniplan.dto.response.OrganizerPerformanceResponseDTO;
+import com.uniplan.dto.response.StatisticsSummaryResponseDTO;
 import com.uniplan.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -33,5 +36,23 @@ public class StatisticsController {
     @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')")
     public ResponseEntity<List<EventStatisticsResponseDTO>> findOccupancyReport() {
         return ResponseEntity.ok(statisticsService.findOccupancyReport());
+    }
+
+    @GetMapping("/summary")
+    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')")
+    public ResponseEntity<StatisticsSummaryResponseDTO> getSummary() {
+        return ResponseEntity.ok(statisticsService.getSummary());
+    }
+
+    @GetMapping("/by-type")
+    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')")
+    public ResponseEntity<List<EventTypeStatisticsResponseDTO>> findByEventType() {
+        return ResponseEntity.ok(statisticsService.findByEventType());
+    }
+
+    @GetMapping("/organizers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<OrganizerPerformanceResponseDTO>> findOrganizerPerformance() {
+        return ResponseEntity.ok(statisticsService.findOrganizerPerformance());
     }
 }
