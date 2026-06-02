@@ -5,6 +5,7 @@ import {
   PlusCircle,
   Settings,
   BarChart2,
+  UserPlus,
   LogOut,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
@@ -41,6 +42,12 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     label: 'Estadísticas',
     icon: <BarChart2 className="w-4 h-4" />,
     roles: ['EMPLOYEE', 'ADMIN'],
+  },
+  {
+    to: '/activate-organizer',
+    label: 'Activar organizador',
+    icon: <UserPlus className="w-4 h-4" />,
+    roles: ['ADMIN'],
   },
 ];
 
