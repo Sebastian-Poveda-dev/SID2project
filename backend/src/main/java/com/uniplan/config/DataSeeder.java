@@ -279,8 +279,6 @@ public class DataSeeder implements ApplicationRunner {
                 .eventType(type)
                 .dynamicData(data)
                 .tags(tags)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build());
     }
 

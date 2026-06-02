@@ -49,6 +49,18 @@ export async function createEvent(payload: import('../../../types/event').Create
   }
 }
 
+export async function publishEvent(id: number): Promise<void> {
+  try {
+    await axiosClient.patch(EVENTS.PUBLISH(id));
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const msg = error.response?.data?.message as string | undefined;
+      if (msg) throw new Error(msg);
+    }
+    throw new Error('No se pudo publicar el evento.');
+  }
+}
+
 export async function deleteEvent(id: number): Promise<void> {
   try {
     await axiosClient.delete(EVENTS.DELETE(id));
@@ -61,9 +73,22 @@ export async function deleteEvent(id: number): Promise<void> {
   }
 }
 
-export async function fetchEvents(): Promise<EventSummary[]> {
+export interface EventFilters {
+  eventType?: string;
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export async function fetchEvents(filters?: EventFilters): Promise<EventSummary[]> {
   try {
-    const { data } = await axiosClient.get<EventSummary[]>(EVENTS.LIST);
+    const params: Record<string, string> = {};
+    if (filters?.eventType && filters.eventType !== 'ALL') params.eventType = filters.eventType;
+    if (filters?.status    && filters.status    !== 'ALL') params.status    = filters.status;
+    if (filters?.startDate) params.startDate = filters.startDate;
+    if (filters?.endDate)   params.endDate   = filters.endDate;
+
+    const { data } = await axiosClient.get<EventSummary[]>(EVENTS.LIST, { params });
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

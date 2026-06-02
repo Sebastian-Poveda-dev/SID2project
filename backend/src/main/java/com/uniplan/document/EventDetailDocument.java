@@ -12,7 +12,6 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -104,10 +103,4 @@ public class EventDetailDocument {
      */
     @Field("metadata")
     private Map<String, Object> metadata;
-
-    @Field("createdAt")
-    private LocalDateTime createdAt;
-
-    @Field("updatedAt")
-    private LocalDateTime updatedAt;
 }

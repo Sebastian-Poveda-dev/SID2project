@@ -32,8 +32,10 @@
       "Bash(xargs kill -9)",
       "Bash(python3 -m json.tool)",
       "Bash(npx tsc *)",
-      "Bash(git checkout *)",
-      "Bash(git merge *)"
+      "Bash(dig _mongodb._tcp.sidiipf.5foshch.mongodb.net SRV +short)",
+      "Bash(nslookup -type=SRV _mongodb._tcp.sidiipf.5foshch.mongodb.net)",
+      "Bash(nc -zv ac-j9hmlg1-shard-00-00.5foshch.mongodb.net 27017)",
+      "Bash(nc -zv ac-j9hmlg1-shard-00-00.5foshch.mongodb.net 27016)"
     ]
   }
 }
