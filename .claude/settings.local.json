@@ -31,7 +31,9 @@
       "Bash(lsof -ti:8080)",
       "Bash(xargs kill -9)",
       "Bash(python3 -m json.tool)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(git checkout *)",
+      "Bash(git merge *)"
     ]
   }
 }
