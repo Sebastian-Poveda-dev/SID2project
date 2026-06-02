@@ -7,6 +7,8 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
   username: string;
+  firstName: string;
+  lastName: string;
   institutionalStudentId: string;
   institutionalEmail: string;
   password: string;
