@@ -12,6 +12,14 @@ import { registerUser } from '../services/auth';
 
 const schema = z
   .object({
+    firstName: z
+      .string()
+      .min(1, 'El nombre es requerido')
+      .max(60, 'Máximo 60 caracteres'),
+    lastName: z
+      .string()
+      .min(1, 'El apellido es requerido')
+      .max(60, 'Máximo 60 caracteres'),
     username: z
       .string()
       .min(3, 'Mínimo 3 caracteres')
@@ -126,19 +134,43 @@ export default function RegisterPage() {
             {serverError && <ErrorAlert message={serverError} />}
             {successMessage && <SuccessAlert message={successMessage} />}
 
-            {/* ── Información estudiantil ── */}
+            {/* ── Información personal ── */}
             <div className="flex flex-col gap-4">
-              <SectionLabel>Información estudiantil</SectionLabel>
+              <SectionLabel>Información personal</SectionLabel>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  {...register('firstName')}
+                  label="Nombre"
+                  placeholder="ej. María"
+                  autoComplete="given-name"
+                  autoFocus
+                  error={errors.firstName?.message}
+                />
+                <Input
+                  {...register('lastName')}
+                  label="Apellido"
+                  placeholder="ej. García"
+                  autoComplete="family-name"
+                  error={errors.lastName?.message}
+                />
+              </div>
 
               <Input
                 {...register('username')}
                 label="Nombre de usuario"
                 placeholder="ej. maria_garcia"
                 autoComplete="username"
-                autoFocus
                 hint="Solo letras, números, guiones y puntos"
                 error={errors.username?.message}
               />
+            </div>
+
+            <div className="border-t border-zinc-100" />
+
+            {/* ── Información estudiantil ── */}
+            <div className="flex flex-col gap-4">
+              <SectionLabel>Información estudiantil</SectionLabel>
 
               <Input
                 {...register('institutionalStudentId')}
@@ -158,7 +190,6 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Divider */}
             <div className="border-t border-zinc-100" />
 
             {/* ── Seguridad ── */}
