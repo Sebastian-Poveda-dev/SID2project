@@ -10,6 +10,7 @@ export const EVENTS = {
   CREATE: '/events',
   UPDATE: (id: number) => `/events/${id}`,
   DELETE: (id: number) => `/events/${id}`,
+  PUBLISH: (id: number) => `/events/${id}/publish`,
 } as const;
 
 export const REGISTRATIONS = {
