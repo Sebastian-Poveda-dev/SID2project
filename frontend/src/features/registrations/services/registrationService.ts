@@ -60,13 +60,11 @@ export async function registerForEvent(eventId: number): Promise<RegistrationRes
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      if (error.response?.status === 409) throw new Error('Ya estás inscrito en este evento.');
-      if (error.response?.status === 400) {
-        const msg = error.response.data?.message as string | undefined;
-        throw new Error(msg ?? 'No cumples los requisitos para este evento.');
-      }
-      if (error.response?.status === 403) throw new Error('Solo estudiantes pueden inscribirse.');
       const msg = error.response?.data?.message as string | undefined;
+      if (error.response?.status === 409) throw new Error(msg ?? 'Ya estás inscrito en este evento.');
+      if (error.response?.status === 422) throw new Error(msg ?? 'No cumples los requisitos para este evento.');
+      if (error.response?.status === 400) throw new Error(msg ?? 'Datos inválidos.');
+      if (error.response?.status === 403) throw new Error('Solo estudiantes pueden inscribirse.');
       if (msg) throw new Error(msg);
     }
     throw new Error('No se pudo completar la inscripción. Intenta de nuevo.');
