@@ -24,3 +24,12 @@ export const ORGANIZERS = {
   DETAIL: (id: number) => `/organizers/${id}`,
   ACTIVATE: '/organizers/activate',
 } as const;
+
+export const STATISTICS = {
+  BY_EVENT: (eventId: number) => `/statistics/events/${eventId}`,
+  POPULAR_EVENTS: '/statistics/popular-events',
+  OCCUPANCY: '/statistics/occupancy',
+  SUMMARY: '/statistics/summary',
+  BY_TYPE: '/statistics/by-type',
+  ORGANIZERS: '/statistics/organizers',
+} as const;
