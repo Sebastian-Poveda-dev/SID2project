@@ -10,6 +10,7 @@ import ProfilePage from '../pages/ProfilePage';
 import MyRegistrationsPage from '../pages/MyRegistrationsPage';
 import CreateEventPage from '../pages/CreateEventPage';
 import ManageEventsPage from '../pages/ManageEventsPage';
+import ActivateOrganizerPage from '../pages/ActivateOrganizerPage';
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
           { path: '/my-registrations', element: <MyRegistrationsPage /> },
           { path: '/create-event', element: <CreateEventPage /> },
           { path: '/manage-events', element: <ManageEventsPage /> },
+          { path: '/activate-organizer', element: <ActivateOrganizerPage /> },
         ],
       },
     ],

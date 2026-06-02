@@ -4,6 +4,7 @@ import {
   ClipboardList,
   PlusCircle,
   Settings,
+  UserPlus,
   LogOut,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
@@ -34,6 +35,12 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     label: 'Gestionar eventos',
     icon: <Settings className="w-4 h-4" />,
     roles: ['EMPLOYEE', 'ADMIN'],
+  },
+  {
+    to: '/activate-organizer',
+    label: 'Activar organizador',
+    icon: <UserPlus className="w-4 h-4" />,
+    roles: ['ADMIN'],
   },
 ];
 
