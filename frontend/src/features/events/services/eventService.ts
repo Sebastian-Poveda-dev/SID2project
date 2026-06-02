@@ -49,6 +49,18 @@ export async function createEvent(payload: import('../../../types/event').Create
   }
 }
 
+export async function publishEvent(id: number): Promise<void> {
+  try {
+    await axiosClient.patch(EVENTS.PUBLISH(id));
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const msg = error.response?.data?.message as string | undefined;
+      if (msg) throw new Error(msg);
+    }
+    throw new Error('No se pudo publicar el evento.');
+  }
+}
+
 export async function deleteEvent(id: number): Promise<void> {
   try {
     await axiosClient.delete(EVENTS.DELETE(id));

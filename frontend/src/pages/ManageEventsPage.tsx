@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Settings, CalendarDays, PlusCircle } from 'lucide-react';
 import type { EventSummary, EventType, EventStatus } from '../types/event';
-import { fetchMyEvents, fetchEvents, deleteEvent } from '../features/events/services/eventService';
+import { fetchMyEvents, fetchEvents, deleteEvent, publishEvent } from '../features/events/services/eventService';
 import { useAuthStore } from '../store/authStore';
 
 const EVENT_TYPE_LABELS: Record<EventType, string> = {
@@ -34,6 +34,7 @@ export default function ManageEventsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [publishing, setPublishing] = useState<number | null>(null);
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'ADMIN';
 
@@ -50,6 +51,18 @@ export default function ManageEventsPage() {
   }, [isAdmin]);
 
   useEffect(() => { load(); }, [load]);
+
+  async function handlePublish(event: EventSummary) {
+    setPublishing(event.id);
+    try {
+      await publishEvent(event.id);
+      setEvents((prev) => prev.map((e) => e.id === event.id ? { ...e, status: 'PUBLISHED' } : e));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al publicar el evento.');
+    } finally {
+      setPublishing(null);
+    }
+  }
 
   async function handleDelete(event: EventSummary) {
     if (!confirm(`¿Eliminar "${event.title}"? Esta acción cancelará todas las inscripciones y no se puede deshacer.`)) return;
@@ -132,6 +145,15 @@ export default function ManageEventsPage() {
                       <Link to={`/manage-events/${event.id}/registrants`} className="text-emerald-600 hover:underline text-xs">
                         Inscritos
                       </Link>
+                      {event.status === 'DRAFT' && (
+                        <button
+                          onClick={() => handlePublish(event)}
+                          disabled={publishing === event.id}
+                          className="text-green-600 hover:text-green-800 text-xs disabled:opacity-50"
+                        >
+                          {publishing === event.id ? 'Publicando…' : 'Publicar'}
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDelete(event)}
                         disabled={deleting === event.id}

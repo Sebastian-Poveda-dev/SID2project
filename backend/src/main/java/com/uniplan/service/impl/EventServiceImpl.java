@@ -138,8 +138,6 @@ public class EventServiceImpl implements EventService {
                 .eventType(DocumentEventType.valueOf(event.getEventType().name()))
                 .dynamicData(request.getDynamicData())
                 .tags(request.getTags())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
         doc = eventDetailRepository.save(doc);
 
@@ -168,11 +166,9 @@ public class EventServiceImpl implements EventService {
                     .orElseGet(() -> EventDetailDocument.builder()
                             .eventId(eventId)
                             .eventType(savedDocType)
-                            .createdAt(LocalDateTime.now())
                             .build());
             if (request.getDynamicData() != null) doc.setDynamicData(request.getDynamicData());
             if (request.getTags() != null)         doc.setTags(request.getTags());
-            doc.setUpdatedAt(LocalDateTime.now());
             eventDetailRepository.save(doc);
         }
 
