@@ -4,6 +4,7 @@ import {
   ClipboardList,
   PlusCircle,
   Settings,
+  BarChart2,
   LogOut,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
@@ -33,6 +34,12 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     to: '/manage-events',
     label: 'Gestionar eventos',
     icon: <Settings className="w-4 h-4" />,
+    roles: ['EMPLOYEE', 'ADMIN'],
+  },
+  {
+    to: '/statistics',
+    label: 'Estadísticas',
+    icon: <BarChart2 className="w-4 h-4" />,
     roles: ['EMPLOYEE', 'ADMIN'],
   },
 ];
