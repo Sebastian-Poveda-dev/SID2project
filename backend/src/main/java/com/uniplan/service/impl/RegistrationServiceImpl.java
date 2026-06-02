@@ -193,7 +193,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     private void validateSlotsAvailable(Event event) {
         if (event.getAvailableSlots() <= 0) {
-            throw new CapacityExceededException("No available slots for event: " + event.getId());
+            throw new CapacityExceededException("No hay cupos disponibles para este evento.");
         }
     }
 
@@ -258,7 +258,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                     && !existing.getId().equals(requested.getId())
                     && overlaps(existing, requested)) {
                 throw new BusinessValidationException(
-                        "Student is already registered for a sports tournament that overlaps with this event");
+                        "Ya estás inscrito en un torneo deportivo que se superpone con el horario de este evento.");
             }
         }
     }
@@ -286,8 +286,8 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         if (completed < required) {
             throw new BusinessValidationException(
-                    "Student has " + completed + " validated volunteer hours but "
-                    + required + " are required to register for this event");
+                    "Este evento requiere " + required + " horas de voluntariado validadas. " +
+                    "Tienes " + completed + " horas registradas.");
         }
     }
 
