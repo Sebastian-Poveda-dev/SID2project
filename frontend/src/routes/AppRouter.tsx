@@ -11,6 +11,7 @@ import MyRegistrationsPage from '../pages/MyRegistrationsPage';
 import CreateEventPage from '../pages/CreateEventPage';
 import ManageEventsPage from '../pages/ManageEventsPage';
 import StatisticsPage from '../pages/StatisticsPage';
+import EventRegistrantsPage from '../pages/EventRegistrantsPage';
 
 const router = createBrowserRouter([
   {
@@ -33,6 +34,7 @@ const router = createBrowserRouter([
           { path: '/create-event', element: <CreateEventPage /> },
           { path: '/manage-events', element: <ManageEventsPage /> },
           { path: '/statistics', element: <StatisticsPage /> },
+          { path: '/manage-events/:eventId/registrants', element: <EventRegistrantsPage /> },
         ],
       },
     ],

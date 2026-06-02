@@ -49,6 +49,15 @@ export interface RegistrationResponse {
   registrationDate: string;
 }
 
+export interface RegistrationDetail {
+  studentId: number;
+  fullName: string;
+  institutionalStudentId: string | null;
+  institutionalEmail: string | null;
+  registrationStatus: RegistrationStatus;
+  registrationDate: string;
+}
+
 export interface CreateEventRequest {
   title: string;
   description: string;

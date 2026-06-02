@@ -17,6 +17,7 @@ export const REGISTRATIONS = {
   CANCEL: (eventId: number) => `/registrations/${eventId}`,
   MY_REGISTRATIONS: '/registrations/my-registrations',
   BY_EVENT: (eventId: number) => `/registrations/event/${eventId}`,
+  EXPORT_CSV: (eventId: number) => `/registrations/event/${eventId}/export/csv`,
 } as const;
 
 export const ORGANIZERS = {

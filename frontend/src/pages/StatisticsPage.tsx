@@ -8,7 +8,9 @@ import {
   Activity,
   Award,
   LayoutDashboard,
+  Download,
 } from 'lucide-react';
+import { downloadCsv } from '../utils/csvExport';
 import type { EventStatistics, StatisticsSummary, EventTypeStatistics, OrganizerPerformance } from '../types/statistics';
 import type { EventSummary, EventType, EventStatus } from '../types/event';
 import {
@@ -333,11 +335,34 @@ function ByTypeTab() {
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (rows.length === 0) return <EmptyState icon={<Activity className="w-8 h-8" />} text="Sin datos por tipo aún." />;
 
+  function handleExport() {
+    downloadCsv('estadisticas-por-tipo', [
+      'Tipo', 'Eventos', 'Inscritos', 'Cancelados', 'Asistentes', 'Tasa asistencia (%)', 'Tasa cancelación (%)',
+    ], rows.map((r) => [
+      EVENT_TYPE_LABELS[r.eventType],
+      r.totalEvents,
+      r.totalRegistered,
+      r.totalCancelled,
+      r.totalAttended,
+      r.attendanceRate.toFixed(1),
+      r.cancellationRate.toFixed(1),
+    ]));
+  }
+
   return (
     <div className="space-y-4">
-      <p className="text-xs text-gray-400">
-        Tasas calculadas sobre eventos con inscripciones. Asistencia = asistentes / inscritos. Cancelación = cancelados / (inscritos + cancelados).
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-gray-400">
+          Tasas calculadas sobre eventos con inscripciones. Asistencia = asistentes / inscritos. Cancelación = cancelados / (inscritos + cancelados).
+        </p>
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-1.5 text-sm text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors shrink-0 ml-4"
+        >
+          <Download className="w-3.5 h-3.5" />
+          Exportar CSV
+        </button>
+      </div>
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
@@ -397,11 +422,33 @@ function OrganizersTab() {
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (rows.length === 0) return <EmptyState icon={<Award className="w-8 h-8" />} text="Sin organizadores con actividad registrada." />;
 
+  function handleExport() {
+    downloadCsv('rendimiento-organizadores', [
+      'Organizador', 'Tipo', 'Eventos', 'Inscritos', 'Ocupación prom. (%)', 'Asistencia prom. (%)',
+    ], rows.map((r) => [
+      r.displayName,
+      ORGANIZER_TYPE_LABELS[r.organizerType] ?? r.organizerType,
+      r.totalEvents,
+      r.totalRegistered,
+      r.avgOccupancyPercentage.toFixed(1),
+      r.avgAttendanceRate.toFixed(1),
+    ]));
+  }
+
   return (
     <div className="space-y-4">
-      <p className="text-xs text-gray-400">
-        Ordenados por ocupación promedio descendente. Solo aparecen organizadores con al menos una inscripción en sus eventos.
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-gray-400">
+          Ordenados por ocupación promedio descendente. Solo aparecen organizadores con al menos una inscripción en sus eventos.
+        </p>
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-1.5 text-sm text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors shrink-0 ml-4"
+        >
+          <Download className="w-3.5 h-3.5" />
+          Exportar CSV
+        </button>
+      </div>
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
@@ -465,38 +512,62 @@ function PopularEventsTab() {
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (events.length === 0) return <EmptyState icon={<TrendingUp className="w-8 h-8" />} text="Sin datos de popularidad aún." />;
 
+  function handleExport() {
+    downloadCsv('eventos-populares', [
+      'Posición', 'Título', 'Tipo', 'Fecha', 'Cupos disponibles', 'Estado',
+    ], events.map((ev, idx) => [
+      idx + 1,
+      ev.title,
+      EVENT_TYPE_LABELS[ev.eventType],
+      new Date(ev.startDateTime).toLocaleDateString('es-CO'),
+      ev.availableSlots,
+      STATUS_LABELS[ev.status],
+    ]));
+  }
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <table className="w-full text-sm">
-        <thead className="bg-gray-50 border-b border-gray-200">
-          <tr>
-            <th className="text-left px-4 py-3 font-medium text-gray-600 w-8">#</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-600">Evento</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-600">Tipo</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-600">Fecha</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-600">Cupos</th>
-            <th className="px-4 py-3" />
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100">
-          {events.map((ev, idx) => (
-            <tr key={ev.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-4 py-3 text-gray-400 font-medium">{idx + 1}</td>
-              <td className="px-4 py-3 font-medium text-gray-900">{ev.title}</td>
-              <td className="px-4 py-3 text-gray-500">{EVENT_TYPE_LABELS[ev.eventType]}</td>
-              <td className="px-4 py-3 text-gray-500">
-                {new Date(ev.startDateTime).toLocaleDateString('es-CO')}
-              </td>
-              <td className="px-4 py-3 text-gray-500">{ev.availableSlots}</td>
-              <td className="px-4 py-3 text-right">
-                <Link to={`/events/${ev.id}`} className="text-indigo-600 hover:underline text-xs">
-                  Ver
-                </Link>
-              </td>
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-1.5 text-sm text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+        >
+          <Download className="w-3.5 h-3.5" />
+          Exportar CSV
+        </button>
+      </div>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="text-left px-4 py-3 font-medium text-gray-600 w-8">#</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">Evento</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">Tipo</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">Fecha</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">Cupos</th>
+              <th className="px-4 py-3" />
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {events.map((ev, idx) => (
+              <tr key={ev.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-4 py-3 text-gray-400 font-medium">{idx + 1}</td>
+                <td className="px-4 py-3 font-medium text-gray-900">{ev.title}</td>
+                <td className="px-4 py-3 text-gray-500">{EVENT_TYPE_LABELS[ev.eventType]}</td>
+                <td className="px-4 py-3 text-gray-500">
+                  {new Date(ev.startDateTime).toLocaleDateString('es-CO')}
+                </td>
+                <td className="px-4 py-3 text-gray-500">{ev.availableSlots}</td>
+                <td className="px-4 py-3 text-right">
+                  <Link to={`/events/${ev.id}`} className="text-indigo-600 hover:underline text-xs">
+                    Ver
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -522,7 +593,29 @@ function OccupancyTab() {
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (rows.length === 0) return <EmptyState icon={<Users className="w-8 h-8" />} text="Sin eventos registrados aún." />;
 
+  function handleExport() {
+    downloadCsv('reporte-ocupacion', [
+      'Evento ID', 'Inscritos', 'Cancelados', 'Asistentes', 'Ocupación (%)',
+    ], rows.map((r) => [
+      r.eventId,
+      r.totalRegistered,
+      r.totalCancelled,
+      r.totalAttended,
+      r.occupancyPercentage.toFixed(1),
+    ]));
+  }
+
   return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-1.5 text-sm text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+        >
+          <Download className="w-3.5 h-3.5" />
+          Exportar CSV
+        </button>
+      </div>
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       <table className="w-full text-sm">
         <thead className="bg-gray-50 border-b border-gray-200">
@@ -552,6 +645,7 @@ function OccupancyTab() {
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   );
 }
