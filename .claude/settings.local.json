@@ -36,7 +36,8 @@
       "Bash(nslookup -type=SRV _mongodb._tcp.sidiipf.5foshch.mongodb.net)",
       "Bash(nc -zv ac-j9hmlg1-shard-00-00.5foshch.mongodb.net 27017)",
       "Bash(nc -zv ac-j9hmlg1-shard-00-00.5foshch.mongodb.net 27016)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(PGPASSWORD=postgres psql *)"
     ]
   }
 }
